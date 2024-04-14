@@ -1,6 +1,8 @@
-using CFPService.Contracts;
+using System.Net.Mime;
+using App;
+using App.Contracts;
+using App.Exceptions;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace CFPService.Controllers;
 
@@ -8,36 +10,26 @@ namespace CFPService.Controllers;
 [Route("[controller]")]
 public class UsersController : Controller
 {
-    private readonly ApplicationContext _applicationContext;
+    private readonly ApplicationService _applicationService;
 
-    public UsersController(ApplicationContext applicationContext)
+    public UsersController(ApplicationService applicationService)
     {
-        _applicationContext = applicationContext;
+        _applicationService = applicationService;
     }
 
     [HttpGet("{authorId}/currentapplication")]
-    public async Task<ApplicationResponseDto> Get(Guid authorId)
+    [Consumes(MediaTypeNames.Application.Json)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ApplicationResponseDto>> Get(Guid authorId)
     {
-        var currentApp = await _applicationContext
-            .Applications
-            .Include(applications => applications.Activity)
-            .FirstOrDefaultAsync(t => t.Author == authorId && t.Status == Statuses.Created);
-
-        if (currentApp is null)
+        try
         {
-            throw new ArgumentException();
+            return await _applicationService.GetCurrentAuthorsApplication(authorId);
         }
-
-        ApplicationResponseDto responseApp = new ApplicationResponseDto
+        catch (NotFoundApplicationException e)
         {
-            Id = currentApp.Id,
-            Author = currentApp.Author,
-            Activity = currentApp.Activity?.Activity ?? string.Empty,
-            Name = currentApp.Name,
-            Description = currentApp.Description,
-            Outline = currentApp.Outline
-        };
-
-        return responseApp;
+            return NotFound(e.Message);
+        }
     }
 }

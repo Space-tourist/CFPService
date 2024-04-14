@@ -1,4 +1,5 @@
-using CFPService.Contracts;
+using App;
+using App.Contracts;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CFPService.Controllers;
@@ -7,23 +8,9 @@ namespace CFPService.Controllers;
 [Route("[controller]")]
 public class ActivitiesController : Controller
 {
-    private readonly ApplicationContext _applicationContext;
-
-    public ActivitiesController(ApplicationContext applicationContext)
-    {
-        _applicationContext = applicationContext;
-    }
-
     [HttpGet]
-    public ActivityDto[] Get()
+    public ActionResult<ActivityDto[]> Get()
     {
-        var activities = _applicationContext.Activities.ToArray();
-
-        return activities.Select(t => new ActivityDto
-            {
-                Activity = t.Activity,
-                Description = t.Description
-            })
-            .ToArray();
+        return ActivitiesService.GetAllActivities();
     }
 }

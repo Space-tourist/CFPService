@@ -1,9 +1,12 @@
 using System.Text.Json.Serialization;
-using CFPService;
+using App;
+using DataAccess;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddControllers()
+
+builder.Services
+    .AddControllers()
     .AddJsonOptions(t =>
     {
         t.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
@@ -11,7 +14,11 @@ builder.Services.AddControllers()
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
 builder.Services.AddDbContext<ApplicationContext>();
+builder.Services.AddScoped<ApplicationRepository>();
+builder.Services.AddScoped<ApplicationService>();
+builder.Services.AddScoped<RequestValidator>();
 
 var app = builder.Build();
 
